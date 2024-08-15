@@ -97,12 +97,25 @@
     </div>
     <script type="text/javascript" src="../dist/TagCloud.min.js"></script>
     <script>
-        var texts = [
+        /*var texts = [
             '3D', 'TagCloud', 'JavaScript',
             'CSS3', 'Animation', 'Interactive',
             'Mouse', 'Rolling', 'Sphere',
             '6KB', 'v2.x',
-        ];
+        ];*/
+        const texts = [
+            { text: '3D', color: '#12D3CF' },
+            { text: 'TagCloud', color: '#6A0573' },
+            { text: 'JavaScript', color: '#E67F20' },
+            { text: 'CSS3', color: '#3A86FF' },
+            { text: 'Animation', color: '#FF006E' },
+            { text: 'Interactive', color: '#0D98BA' },
+            { text: 'Mouse', color: '#D7263D' },
+            { text: 'Rolling', color: '#795548' },
+            { text: 'Sphere', color: '#14A76C' },
+            { text: '6KB', color: '#32CD32' },
+            { text: 'v2.x', color: '#314C70' }
+        ]
         var tc = TagCloud('.content', texts);
         console.log(tc);
     </script>

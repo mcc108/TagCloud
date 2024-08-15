@@ -18,26 +18,31 @@ export interface TagCloudOptions {
     useHTML?: boolean;
 }
 
+export interface TagEntity {
+    text: string;
+    color: string
+}
+
 export default function (
     container: string,
-    texts: Array<string>,
+    texts: Array<string> | Array<TagEntity>,
     options?: TagCloudOptions
 ): TagCloud;
 
 export default function (
     container: Element,
-    texts: Array<string>,
+    texts: Array<string> | Array<TagEntity>,
     options?: TagCloudOptions
 ): TagCloud;
 
 export default function (
     container: [Element],
-    texts: Array<string>,
+    texts: Array<string> | Array<TagEntity>,
     options?: TagCloudOptions
 ): TagCloud;
 
 export default function (
     container: Array<Element>,
-    texts: Array<string>,
+    texts: Array<string> | Array<TagEntity>,
     options?: TagCloudOptions
 ): Array<TagCloud> | TagCloud;

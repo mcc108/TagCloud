@@ -83,8 +83,8 @@ class TagCloud {
 
         // create texts
         self.items = [];
-        self.texts.forEach((text, index) => {
-            const item = self._createTextItem(text, index);
+        self.texts.forEach((entity, index) => {
+            const item = self._createTextItem(entity, index);
             $el.appendChild(item.el);
             self.items.push(item);
         });
@@ -92,8 +92,8 @@ class TagCloud {
         self.$el = $el;
     }
 
-    // create a text
-    _createTextItem(text, index = 0) {
+    // create a entity
+    _createTextItem(entity, index = 0) {
         const self = this;
         const itemEl = document.createElement('span');
         itemEl.className = self.config.itemClass;
@@ -116,11 +116,13 @@ class TagCloud {
             itemEl.style.OTransform = transform;
             itemEl.style.transform = transform;
         }
+        const { text, color } = typeof entity === 'object' ? entity : { text: entity };
         if (self.config.useHTML) {
             itemEl.innerHTML = text;
         } else {
             itemEl.innerText = text;
         }
+        color && (itemEl.style.color = color);
         return {
             el: itemEl,
             ...self._computePosition(index), // distributed in appropriate place
@@ -221,7 +223,6 @@ class TagCloud {
             a = -a;
             b = -b;
         }
-        
         if (Math.abs(a) <= 0.01 && Math.abs(b) <= 0.01) return; // pause
 
         // calculate offset
@@ -271,20 +272,22 @@ class TagCloud {
         // params
         self.texts = texts || [];
         // judging and processing items based on texts
-        self.texts.forEach((text, index) => {
+        self.texts.forEach((entity, index) => {
             let item = self.items[index];
             if (!item) { // if not had, then create
-                item = self._createTextItem(text, index);
+                item = self._createTextItem(entity, index);
                 Object.assign(item, self._computePosition(index, true)); // random place
                 self.$el.appendChild(item.el);
                 self.items.push(item);
             }
             // if had, replace text
+            const { text, color } = typeof entity === 'object' ? entity : { text: entity };
             if (self.config.useHTML) {
                 item.el.innerHTML = text;
             } else {
                 item.el.innerText = text;
             }
+            color && (item.el.style.color = color);
         });
         // remove redundant self.items
         const textsLength = self.texts.length;
