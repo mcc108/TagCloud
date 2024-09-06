@@ -24,27 +24,12 @@ class TagCloud {
         self.keep = self.config.keep; // whether to keep rolling after mouse out area
         self.paused = false; // keep state to pause the animation
 
-        // 添加手动模式和惯性相关的配置
-        self.manualMode = self.config.manualMode || false;
-        self.inertia = self.config.inertia || 0.95; // 调整默认惯性值
-        self.velocity = { x: 0, y: 0 };
-        self.dampening = self.config.dampening || 0.1; // 添加阻尼系数
-        self.stopThreshold = self.config.stopThreshold || 0.1; // 添加停止阈值
-
         // create element
         self._createElment();
         // init
         self._init();
         // set elements and instances
         TagCloud.list.push({ el: self.$el, container, instance: self });
-
-        // 在手动模式下，将初始速度设置为0
-        if (self.manualMode) {
-            self.mouseX0 = 0;
-            self.mouseY0 = 0;
-            self.mouseX = 0;
-            self.mouseY = 0;
-        }
     }
 
     /* static method */
@@ -64,10 +49,6 @@ class TagCloud {
         containerClass: 'tagcloud',
         itemClass: 'tagcloud--item',
         useHTML: false,
-        manualMode: false,
-        inertia: 0.95,
-        dampening: 0.1,
-        stopThreshold: 0.1,
     };
 
     // speed value
@@ -203,7 +184,6 @@ class TagCloud {
             // 触摸移动
             TagCloud._on(self.keep ? window : self.$el, 'touchmove', (ev) => {
                 ev.preventDefault();
-                ev.stopPropagation();
                 if (ev.touches.length === 1) {
                     const touch = ev.touches[0];
                     const rect = self.$el.getBoundingClientRect();
@@ -241,39 +221,12 @@ class TagCloud {
             return;
         }
 
-        if (self.manualMode) {
-            if (!self.active) {
-                // 应用惯性和阻尼
-                self.velocity.x *= self.inertia;
-                self.velocity.y *= self.inertia;
-
-                // 应用阻尼力
-                self.velocity.x -= self.velocity.x * self.dampening;
-                self.velocity.y -= self.velocity.y * self.dampening;
-
-                self.mouseX += self.velocity.x;
-                self.mouseY += self.velocity.y;
-
-                // 如果速度很小，就停止移动
-                if (Math.abs(self.velocity.x) < self.stopThreshold && Math.abs(self.velocity.y) < self.stopThreshold) {
-                    self.velocity.x = 0;
-                    self.velocity.y = 0;
-                }
-            } else {
-                // 当用户触发滚动时，更新速度
-                self.velocity.x = (self.mouseX - self.mouseX0) * 0.5; // 减小速度增量
-                self.velocity.y = (self.mouseY - self.mouseY0) * 0.5;
-            }
-            self.mouseX0 = self.mouseX;
-            self.mouseY0 = self.mouseY;
-        } else {
-            // 原有的自动模式逻辑
-            if (!self.keep && !self.active) {
-                self.mouseX = Math.abs(self.mouseX - self.mouseX0) < 1
-                    ? self.mouseX0 : (self.mouseX + self.mouseX0) / 2;
-                self.mouseY = Math.abs(self.mouseY - self.mouseY0) < 1
-                    ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2;
-            }
+        // if keep `false`, pause rolling after moving mouse out area
+        if (!self.keep && !self.active) {
+            self.mouseX = Math.abs(self.mouseX - self.mouseX0) < 1
+                ? self.mouseX0 : (self.mouseX + self.mouseX0) / 2; // reset distance between the mouse and rolling center x axis
+            self.mouseY = Math.abs(self.mouseY - self.mouseY0) < 1
+                ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2; // reset distance between the mouse and rolling center y axis
         }
 
         let a = -(Math.min(Math.max(-self.mouseY, -self.size), self.size) / self.radius)
