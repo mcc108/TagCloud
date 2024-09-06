@@ -237,7 +237,7 @@
         self.mouseY = self.mouseY0; // current distance between the mouse and rolling center y axis
 
         // 检测是否支持触摸
-        var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        var isTouchDevice = 'ontouchstart' in window || window.navigator && window.navigator.maxTouchPoints > 0;
         if (isTouchDevice) {
           // 触摸开始
           TagCloud._on(self.$el, 'touchstart', function () {
@@ -258,9 +258,9 @@
             }
           });
         } else {
-          // 鼠标事件 (保持原有代码)
-          var _isTouchDevice = window.matchMedia('(hover: hover)');
-          if (!_isTouchDevice || _isTouchDevice.matches) {
+          // 鼠标事件
+          var hasHoverSupport = window.matchMedia('(hover: hover)').matches;
+          if (hasHoverSupport) {
             TagCloud._on(self.$el, 'mouseover', function () {
               self.active = true;
             });
@@ -296,6 +296,12 @@
         if (!self.keep && !self.active) {
           self.mouseX = Math.abs(self.mouseX - self.mouseX0) < 1 ? self.mouseX0 : (self.mouseX + self.mouseX0) / 2; // reset distance between the mouse and rolling center x axis
           self.mouseY = Math.abs(self.mouseY - self.mouseY0) < 1 ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2; // reset distance between the mouse and rolling center y axis
+        }
+
+        // Add gradual stopping logic
+        if (!self.active) {
+          self.mouseX *= 0.95; // gradually reduce mouseX
+          self.mouseY *= 0.95; // gradually reduce mouseY
         }
         var a = -(Math.min(Math.max(-self.mouseY, -self.size), self.size) / self.radius) * self.maxSpeed;
         var b = Math.min(Math.max(-self.mouseX, -self.size), self.size) / self.radius * self.maxSpeed;

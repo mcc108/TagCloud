@@ -229,6 +229,12 @@ class TagCloud {
                 ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2; // reset distance between the mouse and rolling center y axis
         }
 
+        // Add gradual stopping logic
+        if (!self.active) {
+            self.mouseX *= 0.95; // gradually reduce mouseX
+            self.mouseY *= 0.95; // gradually reduce mouseY
+        }
+
         let a = -(Math.min(Math.max(-self.mouseY, -self.size), self.size) / self.radius)
             * self.maxSpeed;
         let b = (Math.min(Math.max(-self.mouseX, -self.size), self.size) / self.radius)
