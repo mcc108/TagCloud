@@ -344,6 +344,7 @@
           itemEl.style.transform = transform;
           itemEl.style.filter = "alpha(opacity=".concat(100 * alpha, ")");
           itemEl.style.opacity = alpha;
+          itemEl.style.zIndex = Math.round(per * 1000); // 更新 z-index
         });
       }
 
