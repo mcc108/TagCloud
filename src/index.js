@@ -191,8 +191,8 @@ class TagCloud {
                     self.mouseX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
                     self.mouseY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
                 }
-            },{
-                passive:false
+            }, {
+                passive: false
             });
         } else {
             // 鼠标事件
