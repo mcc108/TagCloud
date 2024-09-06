@@ -173,19 +173,37 @@ class TagCloud {
         self.mouseX = self.mouseX0; // current distance between the mouse and rolling center x axis
         self.mouseY = self.mouseY0; // current distance between the mouse and rolling center y axis
 
-        const isTouchDevice = window.matchMedia('(hover: hover)');
-        if (!isTouchDevice || isTouchDevice.matches) {
-            // mouseover
-            TagCloud._on(self.$el, 'mouseover', () => { self.active = true; });
-            // mouseout
-            TagCloud._on(self.$el, 'mouseout', () => { self.active = false; });
-            // mousemove
-            TagCloud._on(self.keep ? window : self.$el, 'mousemove', (ev) => {
-                ev = ev || window.event;
-                const rect = self.$el.getBoundingClientRect();
-                self.mouseX = (ev.clientX - (rect.left + rect.width / 2)) / 5;
-                self.mouseY = (ev.clientY - (rect.top + rect.height / 2)) / 5;
+        // 检测是否支持触摸
+        const isTouchDevice = 'ontouchstart' in window || (window.navigator && window.navigator.maxTouchPoints > 0);
+
+        if (isTouchDevice) {
+            // 触摸开始
+            TagCloud._on(self.$el, 'touchstart', () => { self.active = true; });
+            // 触摸结束
+            TagCloud._on(self.$el, 'touchend', () => { self.active = false; });
+            // 触摸移动
+            TagCloud._on(self.keep ? window : self.$el, 'touchmove', (ev) => {
+                ev.preventDefault();
+                if (ev.touches.length === 1) {
+                    const touch = ev.touches[0];
+                    const rect = self.$el.getBoundingClientRect();
+                    self.mouseX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
+                    self.mouseY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
+                }
             });
+        } else {
+            // 鼠标事件
+            const hasHoverSupport = window.matchMedia('(hover: hover)').matches;
+            if (hasHoverSupport) {
+                TagCloud._on(self.$el, 'mouseover', () => { self.active = true; });
+                TagCloud._on(self.$el, 'mouseout', () => { self.active = false; });
+                TagCloud._on(self.keep ? window : self.$el, 'mousemove', (ev) => {
+                    ev = ev || window.event;
+                    const rect = self.$el.getBoundingClientRect();
+                    self.mouseX = (ev.clientX - (rect.left + rect.width / 2)) / 5;
+                    self.mouseY = (ev.clientY - (rect.top + rect.height / 2)) / 5;
+                });
+            }
         }
 
         // update state regularly
@@ -221,7 +239,7 @@ class TagCloud {
             a = -a;
             b = -b;
         }
-        
+
         if (Math.abs(a) <= 0.01 && Math.abs(b) <= 0.01) return; // pause
 
         // calculate offset

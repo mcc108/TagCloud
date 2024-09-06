@@ -7,8 +7,39 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.TagCloud = factory());
-}(this, (function () { 'use strict';
+}(this, function () { 'use strict';
 
+  function _classCallCheck(a, n) {
+    if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
+  }
+  function _defineProperties(e, r) {
+    for (var t = 0; t < r.length; t++) {
+      var o = r[t];
+      o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o);
+    }
+  }
+  function _createClass(e, r, t) {
+    return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", {
+      writable: !1
+    }), e;
+  }
+  function _defineProperty(e, r, t) {
+    return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+      value: t,
+      enumerable: !0,
+      configurable: !0,
+      writable: !0
+    }) : e[r] = t, e;
+  }
+  function _extends() {
+    return _extends = Object.assign ? Object.assign.bind() : function (n) {
+      for (var e = 1; e < arguments.length; e++) {
+        var t = arguments[e];
+        for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]);
+      }
+      return n;
+    }, _extends.apply(null, arguments);
+  }
   function ownKeys(e, r) {
     var t = Object.keys(e);
     if (Object.getOwnPropertySymbols) {
@@ -30,69 +61,19 @@
     }
     return e;
   }
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor);
-    }
-  }
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    Object.defineProperty(Constructor, "prototype", {
-      writable: false
-    });
-    return Constructor;
-  }
-  function _defineProperty(obj, key, value) {
-    key = _toPropertyKey(key);
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-    return obj;
-  }
-  function _extends() {
-    _extends = Object.assign ? Object.assign.bind() : function (target) {
-      for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];
-        for (var key in source) {
-          if (Object.prototype.hasOwnProperty.call(source, key)) {
-            target[key] = source[key];
-          }
-        }
-      }
-      return target;
-    };
-    return _extends.apply(this, arguments);
-  }
-  function _toPrimitive(input, hint) {
-    if (typeof input !== "object" || input === null) return input;
-    var prim = input[Symbol.toPrimitive];
-    if (prim !== undefined) {
-      var res = prim.call(input, hint || "default");
-      if (typeof res !== "object") return res;
+  function _toPrimitive(t, r) {
+    if ("object" != typeof t || !t) return t;
+    var e = t[Symbol.toPrimitive];
+    if (void 0 !== e) {
+      var i = e.call(t, r || "default");
+      if ("object" != typeof i) return i;
       throw new TypeError("@@toPrimitive must return a primitive value.");
     }
-    return (hint === "string" ? String : Number)(input);
+    return ("string" === r ? String : Number)(t);
   }
-  function _toPropertyKey(arg) {
-    var key = _toPrimitive(arg, "string");
-    return typeof key === "symbol" ? key : String(key);
+  function _toPropertyKey(t) {
+    var i = _toPrimitive(t, "string");
+    return "symbol" == typeof i ? i : i + "";
   }
 
   /**
@@ -138,7 +119,7 @@
 
     /* static method */
     // all TagCloud list
-    _createClass(TagCloud, [{
+    return _createClass(TagCloud, [{
       key: "_createElment",
       value: /* instance property method */
       // create elment
@@ -255,23 +236,44 @@
         self.mouseX = self.mouseX0; // current distance between the mouse and rolling center x axis
         self.mouseY = self.mouseY0; // current distance between the mouse and rolling center y axis
 
-        var isTouchDevice = window.matchMedia('(hover: hover)');
-        if (!isTouchDevice || isTouchDevice.matches) {
-          // mouseover
-          TagCloud._on(self.$el, 'mouseover', function () {
+        // 检测是否支持触摸
+        var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isTouchDevice) {
+          // 触摸开始
+          TagCloud._on(self.$el, 'touchstart', function () {
             self.active = true;
           });
-          // mouseout
-          TagCloud._on(self.$el, 'mouseout', function () {
+          // 触摸结束
+          TagCloud._on(self.$el, 'touchend', function () {
             self.active = false;
           });
-          // mousemove
-          TagCloud._on(self.keep ? window : self.$el, 'mousemove', function (ev) {
-            ev = ev || window.event;
-            var rect = self.$el.getBoundingClientRect();
-            self.mouseX = (ev.clientX - (rect.left + rect.width / 2)) / 5;
-            self.mouseY = (ev.clientY - (rect.top + rect.height / 2)) / 5;
+          // 触摸移动
+          TagCloud._on(self.keep ? window : self.$el, 'touchmove', function (ev) {
+            ev.preventDefault();
+            if (ev.touches.length === 1) {
+              var touch = ev.touches[0];
+              var rect = self.$el.getBoundingClientRect();
+              self.mouseX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
+              self.mouseY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
+            }
           });
+        } else {
+          // 鼠标事件 (保持原有代码)
+          var _isTouchDevice = window.matchMedia('(hover: hover)');
+          if (!_isTouchDevice || _isTouchDevice.matches) {
+            TagCloud._on(self.$el, 'mouseover', function () {
+              self.active = true;
+            });
+            TagCloud._on(self.$el, 'mouseout', function () {
+              self.active = false;
+            });
+            TagCloud._on(self.keep ? window : self.$el, 'mousemove', function (ev) {
+              ev = ev || window.event;
+              var rect = self.$el.getBoundingClientRect();
+              self.mouseX = (ev.clientX - (rect.left + rect.width / 2)) / 5;
+              self.mouseY = (ev.clientY - (rect.top + rect.height / 2)) / 5;
+            });
+          }
         }
 
         // update state regularly
@@ -295,7 +297,6 @@
           self.mouseX = Math.abs(self.mouseX - self.mouseX0) < 1 ? self.mouseX0 : (self.mouseX + self.mouseX0) / 2; // reset distance between the mouse and rolling center x axis
           self.mouseY = Math.abs(self.mouseY - self.mouseY0) < 1 ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2; // reset distance between the mouse and rolling center y axis
         }
-
         var a = -(Math.min(Math.max(-self.mouseY, -self.size), self.size) / self.radius) * self.maxSpeed;
         var b = Math.min(Math.max(-self.mouseX, -self.size), self.size) / self.radius * self.maxSpeed;
 
@@ -415,7 +416,6 @@
         }
       }
     }]);
-    return TagCloud;
   }();
   TagCloud.list = [];
   // default config
@@ -466,4 +466,4 @@
 
   return index;
 
-})));
+}));
