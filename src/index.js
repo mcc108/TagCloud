@@ -184,12 +184,15 @@ class TagCloud {
             // 触摸移动
             TagCloud._on(self.keep ? window : self.$el, 'touchmove', (ev) => {
                 ev.preventDefault();
+                ev.stopPropagation();
                 if (ev.touches.length === 1) {
                     const touch = ev.touches[0];
                     const rect = self.$el.getBoundingClientRect();
                     self.mouseX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
                     self.mouseY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
                 }
+            },{
+                passive:false
             });
         } else {
             // 鼠标事件
