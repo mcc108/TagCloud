@@ -24,6 +24,10 @@ class TagCloud {
         self.keep = self.config.keep; // whether to keep rolling after mouse out area
         self.paused = false; // keep state to pause the animation
 
+        this.touchVelocity = { x: 0, y: 0 };
+        this.lastTouchPosition = { x: 0, y: 0 };
+        this.lastTouchTime = 0;
+
         // create element
         self._createElment();
         // init
@@ -188,8 +192,23 @@ class TagCloud {
                 if (ev.touches.length === 1) {
                     const touch = ev.touches[0];
                     const rect = self.$el.getBoundingClientRect();
-                    self.mouseX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
-                    self.mouseY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
+                    const currentX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
+                    const currentY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
+
+                    const currentTime = Date.now();
+                    const deltaTime = currentTime - self.lastTouchTime;
+
+                    if (deltaTime > 0) {
+                        self.touchVelocity.x = (currentX - self.lastTouchPosition.x) / deltaTime;
+                        self.touchVelocity.y = (currentY - self.lastTouchPosition.y) / deltaTime;
+                    }
+
+                    self.mouseX = currentX;
+                    self.mouseY = currentY;
+
+                    self.lastTouchPosition.x = currentX;
+                    self.lastTouchPosition.y = currentY;
+                    self.lastTouchTime = currentTime;
                 }
             }, {
                 passive: false
@@ -232,10 +251,21 @@ class TagCloud {
                 ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2; // reset distance between the mouse and rolling center y axis
         }
 
-        // Add gradual stopping logic
+        // 根据触摸速度调整鼠标位置
         if (!self.active) {
-            self.mouseX *= 0.95; // gradually reduce mouseX
-            self.mouseY *= 0.95; // gradually reduce mouseY
+            const velocityFactor = 50; // 调整这个值以控制惯性效果
+            self.mouseX += self.touchVelocity.x * velocityFactor;
+            self.mouseY += self.touchVelocity.y * velocityFactor;
+
+            // 逐渐减小速度
+            self.touchVelocity.x *= 0.95;
+            self.touchVelocity.y *= 0.95;
+
+            // 如果速度很小,就停止
+            if (Math.abs(self.touchVelocity.x) < 0.01 && Math.abs(self.touchVelocity.y) < 0.01) {
+                self.touchVelocity.x = 0;
+                self.touchVelocity.y = 0;
+            }
         }
 
         let a = -(Math.min(Math.max(-self.mouseY, -self.size), self.size) / self.radius)
