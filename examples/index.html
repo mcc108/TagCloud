@@ -43,9 +43,10 @@
 
         .tagcloud--item {
             padding: 2px 4px;
-            background-color: transparent;
-            border: 1px solid transparent;
+            background-color: #fff;
+            border: 1px solid #000;
             cursor: pointer;
+            border-radius: 15px;
         }
 
         .tagcloud--item:hover {
@@ -95,15 +96,19 @@
     <div class="content">
         <!-- content -->
     </div>
-    <script type="text/javascript" src="../dist/TagCloud.min.js"></script>
+    <script type="text/javascript" src="../dist/TagCloud.js"></script>
     <script>
         var texts = [
             '3D', 'TagCloud', 'JavaScript',
             'CSS3', 'Animation', 'Interactive',
             'Mouse', 'Rolling', 'Sphere',
             '6KB', 'v2.x',
+            '3D', 'TagCloud', 'JavaScript',
+            'CSS3', 'Animation', 'Interactive',
+            'Mouse', 'Rolling', 'Sphere',
+            '6KB', 'v2.x',
         ];
-        var tc = TagCloud('.content', texts);
+        var tc = TagCloud('.content', texts,{keep:true,initSpeed:'slow',maxSpeed:'fast',radius:150});
         console.log(tc);
     </script>
     <script>

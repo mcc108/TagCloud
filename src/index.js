@@ -24,6 +24,10 @@ class TagCloud {
         self.keep = self.config.keep; // whether to keep rolling after mouse out area
         self.paused = false; // keep state to pause the animation
 
+        this.touchVelocity = { x: 0, y: 0 };
+        this.lastTouchPosition = { x: 0, y: 0 };
+        this.lastTouchTime = 0;
+
         // create element
         self._createElment();
         // init
@@ -173,19 +177,55 @@ class TagCloud {
         self.mouseX = self.mouseX0; // current distance between the mouse and rolling center x axis
         self.mouseY = self.mouseY0; // current distance between the mouse and rolling center y axis
 
-        const isTouchDevice = window.matchMedia('(hover: hover)');
-        if (!isTouchDevice || isTouchDevice.matches) {
-            // mouseover
-            TagCloud._on(self.$el, 'mouseover', () => { self.active = true; });
-            // mouseout
-            TagCloud._on(self.$el, 'mouseout', () => { self.active = false; });
-            // mousemove
-            TagCloud._on(self.keep ? window : self.$el, 'mousemove', (ev) => {
-                ev = ev || window.event;
-                const rect = self.$el.getBoundingClientRect();
-                self.mouseX = (ev.clientX - (rect.left + rect.width / 2)) / 5;
-                self.mouseY = (ev.clientY - (rect.top + rect.height / 2)) / 5;
+        // 检测是否支持触摸
+        const isTouchDevice = 'ontouchstart' in window || (window.navigator && window.navigator.maxTouchPoints > 0);
+
+        if (isTouchDevice) {
+            // 触摸开始
+            TagCloud._on(self.$el, 'touchstart', () => { self.active = true; });
+            // 触摸结束
+            TagCloud._on(self.$el, 'touchend', () => { self.active = false; });
+            // 触摸移动
+            TagCloud._on(self.keep ? window : self.$el, 'touchmove', (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (ev.touches.length === 1) {
+                    const touch = ev.touches[0];
+                    const rect = self.$el.getBoundingClientRect();
+                    const currentX = (touch.clientX - (rect.left + rect.width / 2)) / 5;
+                    const currentY = (touch.clientY - (rect.top + rect.height / 2)) / 5;
+
+                    const currentTime = Date.now();
+                    const deltaTime = currentTime - self.lastTouchTime;
+
+                    if (deltaTime > 0) {
+                        self.touchVelocity.x = (currentX - self.lastTouchPosition.x) / deltaTime;
+                        self.touchVelocity.y = (currentY - self.lastTouchPosition.y) / deltaTime;
+                    }
+
+                    self.mouseX = currentX;
+                    self.mouseY = currentY;
+
+                    self.lastTouchPosition.x = currentX;
+                    self.lastTouchPosition.y = currentY;
+                    self.lastTouchTime = currentTime;
+                }
+            }, {
+                passive: false
             });
+        } else {
+            // 鼠标事件
+            const hasHoverSupport = window.matchMedia('(hover: hover)').matches;
+            if (hasHoverSupport) {
+                TagCloud._on(self.$el, 'mouseover', () => { self.active = true; });
+                TagCloud._on(self.$el, 'mouseout', () => { self.active = false; });
+                TagCloud._on(self.keep ? window : self.$el, 'mousemove', (ev) => {
+                    ev = ev || window.event;
+                    const rect = self.$el.getBoundingClientRect();
+                    self.mouseX = (ev.clientX - (rect.left + rect.width / 2)) / 5;
+                    self.mouseY = (ev.clientY - (rect.top + rect.height / 2)) / 5;
+                });
+            }
         }
 
         // update state regularly
@@ -211,6 +251,23 @@ class TagCloud {
                 ? self.mouseY0 : (self.mouseY + self.mouseY0) / 2; // reset distance between the mouse and rolling center y axis
         }
 
+        // 根据触摸速度调整鼠标位置
+        if (!self.active) {
+            const velocityFactor = 50; // 调整这个值以控制惯性效果
+            self.mouseX += self.touchVelocity.x * velocityFactor;
+            self.mouseY += self.touchVelocity.y * velocityFactor;
+
+            // 逐渐减小速度
+            self.touchVelocity.x *= 0.95;
+            self.touchVelocity.y *= 0.95;
+
+            // 如果速度很小,就停止
+            if (Math.abs(self.touchVelocity.x) < 0.01 && Math.abs(self.touchVelocity.y) < 0.01) {
+                self.touchVelocity.x = 0;
+                self.touchVelocity.y = 0;
+            }
+        }
+
         let a = -(Math.min(Math.max(-self.mouseY, -self.size), self.size) / self.radius)
             * self.maxSpeed;
         let b = (Math.min(Math.max(-self.mouseX, -self.size), self.size) / self.radius)
@@ -221,7 +278,7 @@ class TagCloud {
             a = -a;
             b = -b;
         }
-        
+
         if (Math.abs(a) <= 0.01 && Math.abs(b) <= 0.01) return; // pause
 
         // calculate offset
@@ -261,6 +318,7 @@ class TagCloud {
             itemEl.style.transform = transform;
             itemEl.style.filter = `alpha(opacity=${100 * alpha})`;
             itemEl.style.opacity = alpha;
+            itemEl.style.zIndex = Math.round(per * 1000); // 更新 z-index
         });
     }
 
